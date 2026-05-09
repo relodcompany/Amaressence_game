@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Какого цвета твоя amaressence?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #F8F5F0;
+      --white: #FFFFFF;
+      --black: #1A1A1A;
+      --mid: #6B6568;
+      --light: #E2DDD8;
+      --accent: #1A1A1A;
+    }
+
+    html, body { height: 100%; background: var(--bg); overflow: hidden; }
+    body { font-family: 'Inter', system-ui, sans-serif; color: var(--black); }
+
+    /* ── SCREEN SYSTEM ── */
+    .screen {
+      position: fixed; inset: 0;
+      display: flex; flex-direction: column;
+      overflow-y: auto; -webkit-overflow-scrolling: touch;
+      background: var(--bg);
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .screen.active { opacity: 1; pointer-events: auto; }
+
+    /* ── SHARED BUTTONS ── */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: 50px; font-family: 'Inter', sans-serif; font-size: 15px;
+      font-weight: 500; cursor: pointer; transition: opacity 0.2s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent; border: none; letter-spacing: 0.2px;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.3; pointer-events: none; }
+    .btn-dark { background: var(--black); color: var(--white); padding: 16px 44px; }
+    .btn-outline {
+      background: transparent; color: var(--black);
+      border: 1.5px solid var(--black); padding: 14px 36px;
+    }
+    .btn-full { width: 100%; }
+
+    /* ── INTRO ── */
+    #intro {
+      justify-content: center; align-items: center;
+      text-align: center; padding: 48px 28px;
+    }
+    .intro-logo {
+      font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 500;
+      letter-spacing: 5px; text-transform: uppercase; color: var(--mid);
+      margin-bottom: 52px;
+    }
+    .intro-headline {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: clamp(34px, 9vw, 52px); font-weight: 400; line-height: 1.15;
+      margin-bottom: 18px;
+    }
+    .intro-headline em { font-style: italic; }
+    .intro-sub {
+      font-size: 15px; line-height: 1.65; color: var(--mid);
+      max-width: 300px; margin: 0 auto 36px;
+    }
+    .intro-pills {
+      display: flex; align-items: center; justify-content: center;
+      gap: 20px; margin-bottom: 40px;
+      font-size: 13px; color: var(--mid);
+    }
+    .intro-pills span::before { content: '○  '; }
+    .reward-card {
+      background: var(--white); border: 1px solid var(--light);
+      border-radius: 14px; padding: 18px 22px;
+      max-width: 300px; margin: 0 auto 44px; text-align: left;
+    }
+    .reward-card-label {
+      font-size: 10px; letter-spacing: 2.5px; text-transform: uppercase;
+      color: var(--mid); margin-bottom: 8px;
+    }
+    .reward-card-text { font-size: 14px; line-height: 1.55; }
+
+    /* ── QUIZ ── */
+    #quiz { padding: 0; }
+
+    .quiz-header {
+      padding: 20px 24px 14px;
+      position: sticky; top: 0;
+      background: var(--bg); z-index: 10;
+    }
+    .progress-track {
+      width: 100%; height: 2px; background: var(--light);
+      border-radius: 2px; margin-bottom: 14px;
+    }
+    .progress-fill {
+      height: 2px; background: var(--black);
+      border-radius: 2px; transition: width 0.4s ease;
+    }
+    .quiz-counter {
+      font-size: 11px; letter-spacing: 2px;
+      text-transform: uppercase; color: var(--mid);
+    }
+
+    .quiz-body {
+      padding: 28px 24px 140px;
+      transition: opacity 0.22s ease, transform 0.22s ease;
+    }
+    .quiz-body.exit { opacity: 0; transform: translateX(18px); }
+    .quiz-body.enter { opacity: 0; transform: translateX(-18px); transition: none; }
+
+    .value-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: clamp(30px, 7.5vw, 42px); font-weight: 400;
+      line-height: 1.2; margin-bottom: 10px;
+    }
+    .value-desc {
+      font-size: 14px; line-height: 1.65; color: var(--mid); margin-bottom: 32px;
+    }
+
+    /* ── SWATCHES ── */
+    .swatches-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px 10px;
+      justify-items: center;
+    }
+    @media (max-width: 320px) {
+      .swatches-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    .swatch-item {
+      display: flex; flex-direction: column;
+      align-items: center; gap: 7px;
+      cursor: pointer; -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .swatch-circle {
+      width: 58px; height: 58px; border-radius: 50%;
+      border: 2.5px solid transparent;
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.09), 0 1px 4px rgba(0,0,0,0.06);
+      transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+      position: relative; flex-shrink: 0;
+    }
+    .swatch-item.selected .swatch-circle {
+      border-color: var(--black);
+      transform: scale(1.1);
+      box-shadow: inset 0 0 0 1px rgba(0,0,0,0.09), 0 6px 18px rgba(0,0,0,0.2);
+    }
+    .swatch-check {
+      position: absolute; bottom: -2px; right: -2px;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--black); color: var(--white);
+      font-size: 10px; display: flex; align-items: center; justify-content: center;
+      opacity: 0; transition: opacity 0.15s ease;
+      font-weight: 600;
+    }
+    .swatch-item.selected .swatch-check { opacity: 1; }
+    .swatch-label {
+      font-size: 10px; color: var(--mid);
+      text-align: center; line-height: 1.3; max-width: 62px;
+    }
+    .swatch-item.selected .swatch-label { color: var(--black); font-weight: 500; }
+
+    /* ── QUIZ FOOTER ── */
+    .quiz-footer {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      padding: 16px 24px;
+      padding-bottom: max(24px, env(safe-area-inset-bottom, 24px));
+      background: linear-gradient(to top, var(--bg) 65%, transparent);
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .quiz-footer .btn { max-width: 380px; }
+
+    /* ── RESULT ── */
+    #result { justify-content: flex-start; }
+
+    .result-hero {
+      padding: 56px 28px 36px; text-align: center;
+    }
+    .result-eyebrow {
+      font-size: 10px; letter-spacing: 3px; text-transform: uppercase;
+      color: var(--mid); margin-bottom: 18px;
+    }
+    .result-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: clamp(32px, 8vw, 46px); font-weight: 400;
+      line-height: 1.15; margin-bottom: 10px;
+    }
+    .result-tagline {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-style: italic; font-size: 17px; color: var(--mid);
+      margin-bottom: 28px;
+    }
+    .result-dots {
+      display: flex; justify-content: center; gap: 10px; margin-bottom: 28px;
+    }
+    .result-dot {
+      width: 42px; height: 42px; border-radius: 50%;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.18);
+    }
+    .result-desc {
+      font-size: 15px; line-height: 1.75; color: var(--mid);
+      max-width: 340px; margin: 0 auto;
+    }
+
+    .result-divider { height: 1px; background: var(--light); margin: 0 28px; }
+
+    .reward-section { padding: 36px 28px 60px; }
+    .reward-heading {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 24px; text-align: center; margin-bottom: 6px;
+    }
+    .reward-sub {
+      font-size: 13px; color: var(--mid);
+      text-align: center; margin-bottom: 24px;
+    }
+    .reward-options { display: flex; flex-direction: column; gap: 12px; }
+    .reward-opt {
+      background: var(--white); border: 1.5px solid var(--light);
+      border-radius: 14px; padding: 18px 20px;
+      display: flex; align-items: flex-start; gap: 14px;
+      cursor: pointer; transition: border-color 0.15s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .reward-opt:active { transform: scale(0.985); }
+    .reward-opt.selected { border-color: var(--black); }
+    .reward-radio {
+      width: 20px; height: 20px; border-radius: 50%;
+      border: 2px solid var(--light); flex-shrink: 0;
+      margin-top: 2px; transition: border-color 0.15s;
+      position: relative;
+    }
+    .reward-opt.selected .reward-radio { border-color: var(--black); background: var(--black); }
+    .reward-opt.selected .reward-radio::after {
+      content: ''; position: absolute; inset: 3px;
+      background: white; border-radius: 50%;
+    }
+    .reward-opt-title { font-size: 15px; font-weight: 500; margin-bottom: 3px; }
+    .reward-opt-desc { font-size: 13px; color: var(--mid); line-height: 1.5; }
+    .reward-cta { margin-top: 24px; }
+
+    /* ── EMAIL OVERLAY ── */
+    #email-overlay {
+      position: fixed; inset: 0;
+      background: rgba(26,26,26,0.45);
+      display: flex; align-items: flex-end;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.28s ease;
+      z-index: 200;
+    }
+    #email-overlay.active { opacity: 1; pointer-events: auto; }
+
+    .email-sheet {
+      background: var(--white); border-radius: 24px 24px 0 0;
+      padding: 28px 28px;
+      padding-bottom: max(44px, env(safe-area-inset-bottom, 44px));
+      width: 100%;
+      transform: translateY(100%);
+      transition: transform 0.32s ease;
+    }
+    #email-overlay.active .email-sheet { transform: translateY(0); }
+    .sheet-handle {
+      width: 40px; height: 4px; background: var(--light);
+      border-radius: 2px; margin: 0 auto 28px;
+    }
+    .sheet-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 26px; margin-bottom: 8px;
+    }
+    .sheet-sub {
+      font-size: 14px; color: var(--mid);
+      line-height: 1.55; margin-bottom: 24px;
+    }
+    .sheet-input {
+      width: 100%; padding: 15px 18px;
+      border: 1.5px solid var(--light); border-radius: 12px;
+      font-family: 'Inter', sans-serif; font-size: 16px;
+      color: var(--black); background: var(--bg);
+      outline: none; transition: border-color 0.15s;
+      margin-bottom: 14px; -webkit-appearance: none;
+    }
+    .sheet-input:focus { border-color: var(--black); }
+    .sheet-input.error { border-color: #C03030; }
+    .sheet-input::placeholder { color: #ABA6A2; }
+    .sheet-terms {
+      font-size: 11px; color: var(--mid); line-height: 1.55; margin-top: 12px;
+    }
+
+    /* ── SUCCESS ── */
+    #success {
+      justify-content: center; align-items: center;
+      text-align: center; padding: 48px 28px;
+    }
+    .success-icon {
+      width: 68px; height: 68px; border-radius: 50%;
+      background: var(--black); color: var(--white);
+      font-size: 28px; display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 28px;
+    }
+    .success-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 34px; margin-bottom: 12px;
+    }
+    .success-desc {
+      font-size: 15px; color: var(--mid); line-height: 1.65;
+      max-width: 300px; margin: 0 auto 32px;
+    }
+    .success-badge {
+      background: var(--white); border: 1px solid var(--light);
+      border-radius: 14px; padding: 18px 28px;
+      display: inline-block; margin-bottom: 40px;
+    }
+    .success-badge-title { font-size: 13px; color: var(--mid); margin-bottom: 5px; }
+    .success-badge-reward { font-size: 16px; font-weight: 500; }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════
+     INTRO
+═══════════════════════════════════════ -->
+<div id="intro" class="screen">
+  <div class="intro-logo">amaressence</div>
+  <h1 class="intro-headline">Какого цвета<br><em>твоя</em> amaressence?</h1>
+  <p class="intro-sub">Выбери цвет для каждой ценности бренда — и узнай свой уникальный палитровый профиль</p>
+  <div class="intro-pills">
+    <span>7 вопросов</span>
+    <span>2 минуты</span>
+  </div>
+  <div class="reward-card">
+    <div class="reward-card-label">Подарок после прохождения</div>
+    <div class="reward-card-text">500 баллов на покупки <em>или</em> косметичка в следующем заказе — выбор за тобой</div>
+  </div>
+  <button class="btn btn-dark" onclick="startQuiz()">Начать</button>
+</div>
+
+<!-- ══════════════════════════════════════
+     QUIZ
+═══════════════════════════════════════ -->
+<div id="quiz" class="screen">
+  <div class="quiz-header">
+    <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="quiz-counter" id="quiz-counter"></div>
+  </div>
+  <div class="quiz-body" id="quiz-body">
+    <h2 class="value-title" id="value-title"></h2>
+    <p class="value-desc" id="value-desc"></p>
+    <div class="swatches-grid" id="swatches-grid"></div>
+  </div>
+  <div class="quiz-footer">
+    <button class="btn btn-dark btn-full" id="btn-next" disabled onclick="nextQuestion()">Далее →</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     RESULT
+═══════════════════════════════════════ -->
+<div id="result" class="screen">
+  <div class="result-hero">
+    <div class="result-eyebrow">Твой профиль</div>
+    <h2 class="result-title" id="result-title"></h2>
+    <div class="result-tagline" id="result-tagline"></div>
+    <div class="result-dots" id="result-dots"></div>
+    <p class="result-desc" id="result-desc"></p>
+  </div>
+
+  <div class="result-divider"></div>
+
+  <div class="reward-section">
+    <h3 class="reward-heading">Выбери свой подарок</h3>
+    <p class="reward-sub">После выбора мы попросим email для подтверждения</p>
+    <div class="reward-options">
+      <div class="reward-opt" id="opt-points" onclick="selectReward('points')">
+        <div class="reward-radio"></div>
+        <div>
+          <div class="reward-opt-title">500 баллов на покупки</div>
+          <div class="reward-opt-desc">Начислим на аккаунт или привяжем к email — действуют на следующую покупку</div>
+        </div>
+      </div>
+      <div class="reward-opt" id="opt-bag" onclick="selectReward('cosmetic_bag')">
+        <div class="reward-radio"></div>
+        <div>
+          <div class="reward-opt-title">Косметичка в подарок</div>
+          <div class="reward-opt-desc">Вложим в твой следующий заказ бесплатно — один раз, без обмена на деньги</div>
+        </div>
+      </div>
+    </div>
+    <div class="reward-cta">
+      <button class="btn btn-dark btn-full" id="btn-reward" disabled onclick="openSheet()">Получить подарок</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     EMAIL OVERLAY
+═══════════════════════════════════════ -->
+<div id="email-overlay" onclick="onOverlayClick(event)">
+  <div class="email-sheet">
+    <div class="sheet-handle"></div>
+    <h3 class="sheet-title">Почти готово</h3>
+    <p class="sheet-sub">Оставь email — пришлём твой палитровый профиль и активируем подарок</p>
+    <input
+      type="email" id="email-input" class="sheet-input"
+      placeholder="твой@email.ru"
+      inputmode="email" autocomplete="email"
+    >
+    <button class="btn btn-dark btn-full" onclick="submitQuiz()">Активировать подарок</button>
+    <p class="sheet-terms">Нажимая кнопку, ты соглашаешься на получение email от Amaressence. Только результат и подарок — без спама.</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════
+     SUCCESS
+═══════════════════════════════════════ -->
+<div id="success" class="screen">
+  <div class="success-icon">✓</div>
+  <h2 class="success-title">Готово!</h2>
+  <p class="success-desc" id="success-desc"></p>
+  <div class="success-badge">
+    <div class="success-badge-title">Твой подарок забронирован</div>
+    <div class="success-badge-reward" id="success-reward"></div>
+  </div>
+  <button class="btn btn-dark" onclick="location.href='https://amaressence.ru'">Перейти в магазин</button>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+//  DATA
+// ══════════════════════════════════════════════════════════
+
+const API_BASE = window.QUIZ_API_BASE || '';
+
+const VALUES = [
+  { id: 'essence',      title: 'Суть в тебе',            description: 'Цвет, который больше всего ощущается как твоя внутренняя опора — то, что остаётся, когда всё лишнее убрано.' },
+  { id: 'soft_strength',title: 'Мягкая сила',             description: 'Сочетание мягкости в прикосновении и собранности в движении. Сила, которая не кричит о себе.' },
+  { id: 'confidence',   title: 'Уверенность',             description: 'Цвет уверенности в движении и в себе. Как ты выглядишь, когда чувствуешь себя на своём месте.' },
+  { id: 'movement',     title: 'Свобода движения',        description: 'Лёгкость, пластика, дыхание тела. Цвет, который ты чувствуешь, когда тело в потоке.' },
+  { id: 'ease',         title: 'Лёгкость на каждый день', description: 'Цвет базы, которую хочется надевать снова и снова — без усилий, с удовольствием.' },
+  { id: 'femininity',   title: 'Женственность',           description: 'Тон, в котором есть форма, красота и мягкая выразительность. Женственность без объяснений.' },
+  { id: 'balance',      title: 'Баланс',                  description: 'Состояние между энергией и спокойствием. Цвет, в котором всё на своём месте.' },
+];
+
+const COLORS = [
+  { id: 'black',       label: 'Чёрный',        hex: '#1C1C1C', family: 'neutral' },
+  { id: 'milk',        label: 'Молочный',       hex: '#EDE7D9', family: 'neutral' },
+  { id: 'graphite',    label: 'Графит',         hex: '#5A5A5A', family: 'neutral' },
+  { id: 'taupe',       label: 'Тауп',           hex: '#A89888', family: 'neutral' },
+  { id: 'mocha',       label: 'Мокко',          hex: '#8A6A58', family: 'earth'   },
+  { id: 'chocolate',   label: 'Шоколад',        hex: '#5A3A2E', family: 'earth'   },
+  { id: 'sand',        label: 'Песочный',       hex: '#D4B896', family: 'earth'   },
+  { id: 'dusty_rose',  label: 'Пыльная роза',   hex: '#C98F9E', family: 'soft'    },
+  { id: 'sage',        label: 'Шалфей',         hex: '#98A38D', family: 'calm'    },
+  { id: 'red',         label: 'Красный',        hex: '#C83232', family: 'bold'    },
+  { id: 'coral',       label: 'Коралл',         hex: '#FF6F61', family: 'bold'    },
+  { id: 'sky',         label: 'Небесный',       hex: '#8CC7F2', family: 'fresh'   },
+  { id: 'sea_wave',    label: 'Морская волна',  hex: '#2E8B8B', family: 'fresh'   },
+  { id: 'blue_violet', label: 'Сине-фиолет.',   hex: '#5D5FEF', family: 'bold'    },
+  { id: 'hot_pink',    label: 'Ярко-розовый',   hex: '#FF4FA3', family: 'bold'    },
+  { id: 'lemon',       label: 'Лимонный',       hex: '#F0DC5C', family: 'bright'  },
+  { id: 'burgundy',    label: 'Бордовый',       hex: '#7A1F3D', family: 'deep'    },
+  { id: 'turquoise',   label: 'Бирюза',         hex: '#1F7A7A', family: 'fresh'   },
+  { id: 'raspberry',   label: 'Малиновый',      hex: '#D94F70', family: 'bold'    },
+];
+
+const PROFILES = [
+  {
+    id: 'grounded_essence',
+    families: ['neutral', 'earth'],
+    title: 'Земляная суть',
+    tagline: 'Сдержанная. Уверенная. Настоящая.',
+    description: 'Твоя палитра — это сила корней. Ты выбираешь глубину и надёжность, классику и естественность. Для тебя Amaressence — это не мода, а основа. База, которая всегда с тобой.',
+    colors: ['black', 'mocha', 'chocolate'],
+  },
+  {
+    id: 'soft_balance',
+    families: ['soft', 'calm'],
+    title: 'Мягкий баланс',
+    tagline: 'Нежная. Гармоничная. Тихая сила.',
+    description: 'Ты выбираешь нежность и внутреннюю гармонию. Твоя энергия спокойна и устойчива. Amaressence для тебя — ощущение заботы о себе и комфорта в каждом движении.',
+    colors: ['dusty_rose', 'sage', 'sand'],
+  },
+  {
+    id: 'bold_feminine',
+    families: ['bold', 'deep'],
+    title: 'Смелая женственность',
+    tagline: 'Яркая. Выразительная. Притягивающая.',
+    description: 'Твоя палитра — это выразительность и уверенность в каждом движении. Ты не боишься быть заметной. Для тебя Amaressence — это форма, красота и смелый выбор.',
+    colors: ['hot_pink', 'burgundy', 'raspberry'],
+  },
+  {
+    id: 'fluid_motion',
+    families: ['fresh', 'bright'],
+    title: 'Свободное движение',
+    tagline: 'Лёгкая. Открытая. В потоке.',
+    description: 'Ты выбираешь свежесть и пространство. Для тебя важна свобода — в движении и в жизни. Amaressence — это лёгкость каждого дня и дыхание в каждом шаге.',
+    colors: ['sky', 'sea_wave', 'turquoise'],
+  },
+  {
+    id: 'magnetic_duality',
+    families: [],
+    title: 'Магнетизм контрастов',
+    tagline: 'Многогранная. Непредсказуемая. Своя.',
+    description: 'Твоя палитра — это многогранность. Ты сочетаешь противоположности и создаёшь из них свою уникальную энергию. Amaressence для тебя — пространство для самовыражения.',
+    colors: ['black', 'blue_violet', 'dusty_rose'],
+  },
+];
+
+// ══════════════════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════════════════
+
+const state = {
+  step: 0,
+  answers: {},
+  profile: null,
+  reward: null,
+  sessionId: 'sess_' + Math.random().toString(36).slice(2, 9) + '_' + Date.now(),
+};
+
+// ══════════════════════════════════════════════════════════
+//  SCREEN CONTROL
+// ══════════════════════════════════════════════════════════
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById(id);
+  el.scrollTop = 0;
+  requestAnimationFrame(() => el.classList.add('active'));
+}
+
+// ══════════════════════════════════════════════════════════
+//  QUIZ
+// ══════════════════════════════════════════════════════════
+
+function startQuiz() {
+  state.step = 0;
+  state.answers = {};
+  renderQuestion();
+  showScreen('quiz');
+}
+
+function renderQuestion() {
+  const v = VALUES[state.step];
+  const pct = (state.step / VALUES.length) * 100;
+
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('quiz-counter').textContent = `${state.step + 1} из ${VALUES.length}`;
+  document.getElementById('value-title').textContent = v.title;
+  document.getElementById('value-desc').textContent = v.description;
+
+  const selected = state.answers[v.id];
+  document.getElementById('swatches-grid').innerHTML = COLORS.map(c => `
+    <div class="swatch-item ${selected === c.id ? 'selected' : ''}"
+         data-color="${c.id}" onclick="selectColor('${c.id}')">
+      <div class="swatch-circle" style="background:${c.hex};">
+        <div class="swatch-check">✓</div>
+      </div>
+      <div class="swatch-label">${c.label}</div>
+    </div>
+  `).join('');
+
+  const btnNext = document.getElementById('btn-next');
+  btnNext.disabled = !selected;
+  btnNext.textContent = state.step === VALUES.length - 1 ? 'Узнать результат' : 'Далее →';
+}
+
+function selectColor(colorId) {
+  const v = VALUES[state.step];
+  state.answers[v.id] = colorId;
+
+  document.querySelectorAll('.swatch-item').forEach(el => {
+    el.classList.toggle('selected', el.dataset.color === colorId);
+  });
+  document.getElementById('btn-next').disabled = false;
+}
+
+function nextQuestion() {
+  if (state.step < VALUES.length - 1) {
+    const body = document.getElementById('quiz-body');
+    body.classList.add('exit');
+    setTimeout(() => {
+      state.step++;
+      renderQuestion();
+      body.classList.remove('exit');
+      body.classList.add('enter');
+      requestAnimationFrame(() => requestAnimationFrame(() => body.classList.remove('enter')));
+    }, 220);
+  } else {
+    showResults();
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+//  RESULTS
+// ══════════════════════════════════════════════════════════
+
+function computeProfile() {
+  const count = {};
+  Object.values(state.answers).forEach(cid => {
+    const c = COLORS.find(x => x.id === cid);
+    if (c) count[c.family] = (count[c.family] || 0) + 1;
+  });
+
+  const ranked = PROFILES.slice(0, -1).map(p => ({
+    p, score: p.families.reduce((s, f) => s + (count[f] || 0), 0),
+  })).sort((a, b) => b.score - a.score);
+
+  return ranked[0].score >= 2 ? ranked[0].p : PROFILES[PROFILES.length - 1];
+}
+
+function showResults() {
+  state.profile = computeProfile();
+  const p = state.profile;
+
+  document.getElementById('result-title').textContent = p.title;
+  document.getElementById('result-tagline').textContent = p.tagline;
+  document.getElementById('result-desc').textContent = p.description;
+  document.getElementById('result-dots').innerHTML = p.colors.map(cid => {
+    const c = COLORS.find(x => x.id === cid);
+    return `<div class="result-dot" style="background:${c.hex};" title="${c.label}"></div>`;
+  }).join('');
+
+  showScreen('result');
+}
+
+// ══════════════════════════════════════════════════════════
+//  REWARD
+// ══════════════════════════════════════════════════════════
+
+function selectReward(rewardId) {
+  state.reward = rewardId;
+  document.getElementById('opt-points').classList.toggle('selected', rewardId === 'points');
+  document.getElementById('opt-bag').classList.toggle('selected', rewardId === 'cosmetic_bag');
+  document.getElementById('btn-reward').disabled = false;
+}
+
+function openSheet() {
+  document.getElementById('email-overlay').classList.add('active');
+  setTimeout(() => document.getElementById('email-input').focus(), 350);
+}
+
+function onOverlayClick(e) {
+  if (e.target === document.getElementById('email-overlay')) {
+    document.getElementById('email-overlay').classList.remove('active');
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+//  SUBMIT
+// ══════════════════════════════════════════════════════════
+
+async function submitQuiz() {
+  const input = document.getElementById('email-input');
+  const email = input.value.trim();
+
+  if (!email || !email.includes('@') || !email.includes('.')) {
+    input.classList.add('error');
+    input.focus();
+    return;
+  }
+  input.classList.remove('error');
+
+  try {
+    await fetch(API_BASE + '/api/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        session_id: state.sessionId,
+        answers: state.answers,
+        profile: state.profile.id,
+        reward: state.reward,
+        email,
+      }),
+    });
+  } catch (_) {
+    // Backend unavailable — quiz still completes
+  }
+
+  document.getElementById('email-overlay').classList.remove('active');
+
+  const rewardLabel = state.reward === 'points'
+    ? '500 баллов на покупки'
+    : 'Косметичка в следующем заказе';
+
+  document.getElementById('success-desc').textContent =
+    `Профиль «${state.profile.title}» сохранён. Мы напишем тебе на ${email}.`;
+  document.getElementById('success-reward').textContent = rewardLabel;
+
+  showScreen('success');
+}
+
+// ══════════════════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════════════════
+showScreen('intro');
+</script>
+</body>
+</html>
