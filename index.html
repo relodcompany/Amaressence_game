@@ -160,12 +160,6 @@
     }
     .swatch-item.selected .swatch-label { color: var(--brand); font-weight: 500; }
 
-    /* accent colours row – single centred line */
-    .swatches-row {
-      display: flex; flex-wrap: wrap; justify-content: center;
-      gap: 18px 10px; margin-top: 18px;
-    }
-
     /* ── QUIZ FOOTER ── */
     .quiz-footer {
       position: fixed; bottom: 0; left: 0; right: 0;
@@ -339,7 +333,6 @@
     <h2 class="value-title" id="value-title"></h2>
     <p class="value-desc" id="value-desc"></p>
     <div class="swatches-grid" id="swatches-grid"></div>
-    <div class="swatches-row"  id="swatches-row"></div>
   </div>
   <div class="quiz-footer">
     <button class="btn btn-brand btn-full" id="btn-next" disabled onclick="nextQuestion()">Далее →</button>
@@ -417,22 +410,26 @@ const VALUES = [
 ];
 
 const COLORS = [
-  { id: 'black',       label: 'Чёрный',        hex: '#1C1C1C', family: 'neutral' },
-  { id: 'cream',       label: 'Сливочный',      hex: '#F0E8D5', family: 'neutral' },
-  { id: 'graphite',    label: 'Графит',         hex: '#5A5A5A', family: 'neutral' },
-  { id: 'taupe',       label: 'Тауп',           hex: '#A89888', family: 'neutral' },
-  { id: 'chocolate',   label: 'Шоколад',        hex: '#5A3A2E', family: 'earth'   },
-  { id: 'light_pink',  label: 'Нежно-розовый',  hex: '#F5C0CE', family: 'soft'    },
-  { id: 'olive',       label: 'Оливковый',      hex: '#8C9A6E', family: 'calm'    },
-  { id: 'hot_pink',    label: 'Ярко-розовый',   hex: '#FF4FA3', family: 'bold'    },
-  { id: 'red',         label: 'Красный',        hex: '#C83232', family: 'bold'    },
-  { id: 'coral',       label: 'Коралл',         hex: '#FF6F61', family: 'bold'    },
-  { id: 'burgundy',    label: 'Бордовый',       hex: '#7A1F3D', family: 'deep'    },
-  { id: 'navy',        label: 'Темно-синий',    hex: '#1E2F6B', family: 'deep'    },
-  { id: 'sky',         label: 'Небесный',       hex: '#8CC7F2', family: 'fresh'   },
-  { id: 'sea_wave',    label: 'Морская волна',  hex: '#2E8B8B', family: 'fresh'   },
-  { id: 'cornflower',  label: 'Василь-<br>ковый', hex: '#6B8DD6', family: 'fresh'   },
-  { id: 'lemon',       label: 'Лимонный',       hex: '#F0DC5C', family: 'bright'  },
+  // row 1
+  { id: 'black',      label: 'Чёрный',           hex: '#1C1C1C', family: 'neutral' },
+  { id: 'chocolate',  label: 'Шоколад',           hex: '#5A3A2E', family: 'earth'   },
+  { id: 'graphite',   label: 'Графит',            hex: '#5A5A5A', family: 'neutral' },
+  { id: 'taupe',      label: 'Тауп',              hex: '#A89888', family: 'neutral' },
+  // row 2
+  { id: 'cream',      label: 'Сливочный',         hex: '#F0E8D5', family: 'neutral' },
+  { id: 'olive',      label: 'Оливковый',         hex: '#8C9A6E', family: 'calm'    },
+  { id: 'red',        label: 'Красный',           hex: '#C83232', family: 'bold'    },
+  { id: 'burgundy',   label: 'Бордовый',          hex: '#7A1F3D', family: 'deep'    },
+  // row 3 – the 4 that go together
+  { id: 'light_pink', label: 'Нежно-<br>розовый', hex: '#F5C0CE', family: 'soft'    },
+  { id: 'hot_pink',   label: 'Ярко-<br>розовый',  hex: '#FF4FA3', family: 'bold'    },
+  { id: 'navy',       label: 'Темно-<br>синий',   hex: '#1E2F6B', family: 'deep'    },
+  { id: 'cornflower', label: 'Василь-<br>ковый',  hex: '#6B8DD6', family: 'fresh'   },
+  // row 4
+  { id: 'sky',        label: 'Небесный',          hex: '#8CC7F2', family: 'fresh'   },
+  { id: 'sea_wave',   label: 'Морская волна',     hex: '#2E8B8B', family: 'fresh'   },
+  { id: 'coral',      label: 'Коралл',            hex: '#FF6F61', family: 'bold'    },
+  { id: 'lemon',      label: 'Лимонный',          hex: '#F0DC5C', family: 'bright'  },
 ];
 
 const PROFILES = [
@@ -520,20 +517,15 @@ function renderQuestion() {
   document.getElementById('value-title').textContent = v.title;
   document.getElementById('value-desc').textContent = v.description;
 
-  const ACCENT = ['light_pink', 'coral', 'hot_pink', 'navy', 'cornflower'];
   const selected = state.answers[v.id];
-  const swatchHtml = c => `
+  document.getElementById('swatches-grid').innerHTML = COLORS.map(c => `
     <div class="swatch-item ${selected === c.id ? 'selected' : ''}"
          data-color="${c.id}" onclick="selectColor('${c.id}')">
       <div class="swatch-circle" style="background:${c.hex};">
         <div class="swatch-check">✓</div>
       </div>
       <div class="swatch-label">${c.label}</div>
-    </div>`;
-  document.getElementById('swatches-grid').innerHTML =
-    COLORS.filter(c => !ACCENT.includes(c.id)).map(swatchHtml).join('');
-  document.getElementById('swatches-row').innerHTML =
-    COLORS.filter(c =>  ACCENT.includes(c.id)).map(swatchHtml).join('');
+    </div>`).join('');
 
   const btnNext = document.getElementById('btn-next');
   btnNext.disabled = !selected;
