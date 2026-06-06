@@ -55,7 +55,7 @@ def init_db() -> None:
                 created_at  TEXT NOT NULL,
                 answers     TEXT NOT NULL,
                 profile     TEXT NOT NULL,
-                reward      TEXT NOT NULL,
+                name        TEXT NOT NULL DEFAULT '',
                 email       TEXT NOT NULL
             )
         """)
@@ -72,7 +72,7 @@ class Submission(BaseModel):
     session_id: str
     answers:    dict[str, str]   # { value_id: color_id }
     profile:    str
-    reward:     str
+    name:       str = ""
     email:      str
 
 
@@ -89,7 +89,7 @@ def submit(data: Submission):
                 datetime.utcnow().isoformat(),
                 json.dumps(data.answers, ensure_ascii=False),
                 data.profile,
-                data.reward,
+                data.name,
                 data.email,
             ),
         )
@@ -124,13 +124,13 @@ def export(key: str):
 
     with get_db() as conn:
         rows = conn.execute(
-            "SELECT id, session_id, created_at, answers, profile, reward, email "
+            "SELECT id, session_id, created_at, answers, profile, name, email "
             "FROM responses ORDER BY created_at DESC"
         ).fetchall()
 
     buf = StringIO()
     w = csv.writer(buf)
-    w.writerow(["id", "session_id", "created_at", "answers", "profile", "reward", "email"])
+    w.writerow(["id", "session_id", "created_at", "answers", "profile", "name", "email"])
     w.writerows(rows)
     buf.seek(0)
 
