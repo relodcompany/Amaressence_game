@@ -119,6 +119,8 @@
     .value-desc {
       font-size: 15px; line-height: 1.65; color: var(--mid);
       margin-bottom: 36px; max-width: 340px; margin-left: auto; margin-right: auto;
+      display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
     /* ── SWATCHES ── */
@@ -153,7 +155,7 @@
     }
     .swatch-item.selected .swatch-check { opacity: 1; }
     .swatch-label {
-      font-size: 12px; color: var(--mid);
+      font-size: 14px; color: var(--mid);
       text-align: center; line-height: 1.3; max-width: 66px;
     }
     .swatch-item.selected .swatch-label { color: var(--brand); font-weight: 500; }
@@ -213,19 +215,20 @@
     #reg-overlay {
       position: fixed; inset: 0;
       background: rgba(26,26,26,0.45);
-      display: flex; align-items: flex-end;
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
       opacity: 0; pointer-events: none;
       transition: opacity 0.28s ease; z-index: 200;
     }
     #reg-overlay.active { opacity: 1; pointer-events: auto; }
     .reg-sheet {
-      background: var(--white); border-radius: 24px 24px 0 0;
-      padding: 28px 28px;
-      padding-bottom: max(44px, env(safe-area-inset-bottom, 44px));
-      width: 100%;
-      transform: translateY(100%); transition: transform 0.32s ease;
+      background: var(--white); border-radius: 20px;
+      padding: 40px 44px;
+      width: 33%; min-width: 300px; max-width: 480px;
+      transform: scale(0.95); opacity: 0;
+      transition: transform 0.3s ease, opacity 0.3s ease;
     }
-    #reg-overlay.active .reg-sheet { transform: translateY(0); }
+    #reg-overlay.active .reg-sheet { transform: scale(1); opacity: 1; }
     .sheet-handle {
       width: 40px; height: 4px; background: var(--light);
       border-radius: 2px; margin: 0 auto 28px;
@@ -363,7 +366,6 @@
 ═══════════════════════════════════════ -->
 <div id="reg-overlay" onclick="onOverlayClick(event)">
   <div class="reg-sheet">
-    <div class="sheet-handle"></div>
     <h3 class="sheet-title">Создать аккаунт</h3>
     <p class="sheet-sub">Зарегистрируйся и получи 400 баллов на первую покупку в amarèssence</p>
     <input type="text"  id="name-input"  class="sheet-input" placeholder="Твоё имя"       autocomplete="given-name">
@@ -398,13 +400,13 @@
 const API_BASE = window.QUIZ_API_BASE || '';
 
 const VALUES = [
-  { id: 'essence',       title: 'Суть в тебе',             description: 'Цвет, который больше всего ощущается как твоя внутренняя опора — то, что остаётся, когда всё лишнее убрано.' },
-  { id: 'soft_strength', title: 'Мягкая сила',              description: 'Сочетание мягкости в прикосновении и собранности в движении. Сила, которая не кричит о себе.' },
-  { id: 'confidence',    title: 'Уверенность',              description: 'Цвет уверенности в движении и в себе. Как ты выглядишь, когда чувствуешь себя на своём месте.' },
-  { id: 'movement',      title: 'Свобода движения',         description: 'Лёгкость, пластика, дыхание тела. Цвет, который ты чувствуешь, когда тело в потоке.' },
-  { id: 'ease',          title: 'Лёгкость на каждый день',  description: 'Цвет базы, которую хочется надевать снова и снова — без усилий, с удовольствием.' },
-  { id: 'femininity',    title: 'Женственность',            description: 'Тон, в котором есть форма, красота и мягкая выразительность. Женственность без объяснений.' },
-  { id: 'balance',       title: 'Баланс',                   description: 'Состояние между энергией и спокойствием. Цвет, в котором всё на своём месте.' },
+  { id: 'essence',       title: 'Суть в тебе',             description: 'Твоя внутренняя опора. То, что остаётся, когда всё лишнее убрано.' },
+  { id: 'soft_strength', title: 'Мягкая сила',              description: 'Мягкость в прикосновении и собранность в движении.' },
+  { id: 'confidence',    title: 'Уверенность',              description: 'Как ты выглядишь, когда чувствуешь себя на своём месте.' },
+  { id: 'movement',      title: 'Свобода движения',         description: 'Лёгкость, пластика, дыхание тела. Когда тело в потоке.' },
+  { id: 'ease',          title: 'Лёгкость на каждый день',  description: 'Цвет базы, которую хочется надевать снова и снова.' },
+  { id: 'femininity',    title: 'Женственность',            description: 'Форма, красота и мягкая выразительность. Без объяснений.' },
+  { id: 'balance',       title: 'Баланс',                   description: 'Между энергией и спокойствием. Всё на своём месте.' },
 ];
 
 const COLORS = [
@@ -426,7 +428,6 @@ const COLORS = [
   { id: 'navy',        label: 'Темно-синий',    hex: '#1E2F6B', family: 'deep'    },
   { id: 'sky',         label: 'Небесный',       hex: '#8CC7F2', family: 'fresh'   },
   { id: 'sea_wave',    label: 'Морская волна',  hex: '#2E8B8B', family: 'fresh'   },
-  { id: 'turquoise',   label: 'Бирюза',         hex: '#1F7A7A', family: 'fresh'   },
   { id: 'cornflower',  label: 'Васильковый',    hex: '#6B8DD6', family: 'fresh'   },
   { id: 'lemon',       label: 'Лимонный',       hex: '#F0DC5C', family: 'bright'  },
 ];
@@ -462,7 +463,7 @@ const PROFILES = [
     title: 'Свободное движение',
     tagline: 'Лёгкая. Открытая. В потоке.',
     description: 'Ты выбираешь свежесть и пространство. Для тебя важна свобода — в движении и в жизни. amarèssence — это лёгкость каждого дня и дыхание в каждом шаге.',
-    colors: ['sky', 'cornflower', 'turquoise'],
+    colors: ['sky', 'cornflower', 'sea_wave'],
   },
   {
     id: 'magnetic_duality',
