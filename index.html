@@ -512,7 +512,7 @@ function renderQuestion() {
   const pct = (state.step / VALUES.length) * 100;
 
   document.getElementById('progress-fill').style.width = pct + '%';
-  document.getElementById('quiz-counter').textContent = `${state.step + 1} из ${VALUES.length}`;
+  document.getElementById('quiz-counter').textContent = `${state.step + 1} / ${VALUES.length}`;
   document.getElementById('value-title').textContent = v.title;
   document.getElementById('value-desc').textContent = v.description;
 
